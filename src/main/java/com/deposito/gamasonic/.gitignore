@@ -1,0 +1,22 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+*.log
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# SO
+.DS_Store
+
+# Spring
+.env
+application-local.yml
+application-local.properties
+
+# Gradle (si usás gradle)
+.build/
