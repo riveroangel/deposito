@@ -2,6 +2,7 @@ package com.deposito.gamasonic.service;
 
 import com.deposito.gamasonic.dto.DepositoRequestDTO;
 import com.deposito.gamasonic.dto.DepositoResponseDTO;
+import com.deposito.gamasonic.dto.DepositoUpdateDTO;
 import com.deposito.gamasonic.entity.Deposito;
 import com.deposito.gamasonic.mapper.DepositoMapper;
 import com.deposito.gamasonic.repository.DepositoRepository;
@@ -60,18 +61,30 @@ public class DepositoService {
     }
 
     @Transactional
-    public DepositoResponseDTO actualizar(Long id, DepositoRequestDTO dto) {
+    public DepositoResponseDTO actualizar(Long id, DepositoUpdateDTO dto) {
         Deposito deposito = depositoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Deposito no encontrado con ID: " + id));
 
-        if (dto.getCodigo() != null && !dto.getCodigo().equals(deposito.getCodigo())) {
+        // Validar y actualizar código si se proporciona
+        if (dto.getCodigo() != null && !dto.getCodigo().isEmpty() &&
+                !dto.getCodigo().equals(deposito.getCodigo())) {
             if (depositoRepository.existsByCodigo(dto.getCodigo())) {
                 throw new RuntimeException("Ya existe otro deposito con el codigo: " + dto.getCodigo());
             }
             deposito.setCodigo(dto.getCodigo());
         }
 
-        depositoMapper.updateEntity(deposito, dto);
+        // Actualizar otros campos si se proporcionan
+        if (dto.getNombre() != null) deposito.setNombre(dto.getNombre());
+        if (dto.getDireccion() != null) deposito.setDireccion(dto.getDireccion());
+        if (dto.getCiudad() != null) deposito.setCiudad(dto.getCiudad());
+        if (dto.getResponsable() != null) deposito.setResponsable(dto.getResponsable());
+        if (dto.getTelefono() != null) deposito.setTelefono(dto.getTelefono());
+        if (dto.getObservaciones() != null) deposito.setObservaciones(dto.getObservaciones());
+        if (dto.getCapacidadMaxima() != null) deposito.setCapacidadMaxima(dto.getCapacidadMaxima());
+        if (dto.getActivo() != null) deposito.setActivo(dto.getActivo());
+        if (dto.getEsPrincipal() != null) deposito.setEsPrincipal(dto.getEsPrincipal());
+
         Deposito updated = depositoRepository.save(deposito);
         return depositoMapper.toDto(updated);
     }
