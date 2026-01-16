@@ -11,14 +11,14 @@ import java.util.List;
 
 @Entity
 @Data
-@Table
+@Table(name = "usuario")
 public class Usuario implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true ,nullable = false)
+    @Column(unique = true, nullable = false)
     private String username;
 
     @Column(nullable = false)
@@ -28,11 +28,11 @@ public class Usuario implements UserDetails {
     @Column(nullable = false)
     private Rol rol;
 
+    @Column(name = "enabled")
     private boolean enabled = true;
 
-    /* === Spring Security === */
     @Override
-    public Collection <? extends GrantedAuthority> getAuthorities() {
+    public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + rol.name()));
     }
 
@@ -56,4 +56,3 @@ public class Usuario implements UserDetails {
         return enabled;
     }
 }
-

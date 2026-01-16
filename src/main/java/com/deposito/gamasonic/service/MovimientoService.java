@@ -186,4 +186,31 @@ public class MovimientoService {
                 movimiento.getFecha()
         );
     }
+    // En MovimientoService.java agregar:
+
+    @Transactional
+    public MovimientoDTO recibirPedido(Long pedidoId, String username) {
+        // Este método se llamaría cuando un pedido se marca como COMPLETADO
+        // para crear automáticamente los movimientos de entrada
+
+        // Nota: Necesitarías inyectar PedidoRepository y PedidoService
+        // Pedido pedido = pedidoRepository.findById(pedidoId).orElseThrow(...);
+
+        // Por cada detalle del pedido que esté completo, crear movimiento de entrada
+    /*
+    for (DetallePedido detalle : pedido.getDetalles()) {
+        if (detalle.estaCompleto()) {
+            MovimientoEntradaDTO entradaDto = new MovimientoEntradaDTO(
+                detalle.getProducto().getCodigoBarra(),
+                detalle.getCantidadRecibida()
+            );
+            registrarEntrada(entradaDto, username);
+        }
+    }
+    */
+
+        // Por ahora devolvemos un DTO vacío - implementación completa depende de tu estructura
+        return new MovimientoDTO(0L, "PEDIDO-" + pedidoId, "Recepción de pedido",
+                0, username, LocalDateTime.now());
+    }
 }

@@ -1,5 +1,5 @@
 package com.deposito.gamasonic.controller;
-
+/*
 import com.deposito.gamasonic.dto.LoginRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
@@ -95,4 +95,4 @@ public class AuthController {
         response.put("message", "No autenticado");
         return ResponseEntity.status(401).body(response);
     }
-}
+}*/
