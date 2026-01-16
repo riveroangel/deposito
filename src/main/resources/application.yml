@@ -34,3 +34,6 @@ logging:
     root: INFO
     com.deposito.gamasonic: DEBUG
     org.hibernate.SQL: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.validation: DEBUG
+    org.hibernate: DEBUG
