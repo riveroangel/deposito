@@ -2,6 +2,7 @@ package com.deposito.gamasonic.mapper;
 
 import com.deposito.gamasonic.dto.DepositoRequestDTO;
 import com.deposito.gamasonic.dto.DepositoResponseDTO;
+import com.deposito.gamasonic.dto.DepositoUpdateDTO;
 import com.deposito.gamasonic.entity.Deposito;
 import org.springframework.stereotype.Component;
 
@@ -40,8 +41,9 @@ public class DepositoMapper {
         dto.setFechaActualizacion(deposito.getFechaActualizacion());
         return dto;
     }
-
-    public void updateEntity(Deposito deposito, DepositoRequestDTO dto) {
+    // Método para actualizar desde UpdateDTO (opcional)
+    // Método para actualizar desde UpdateDTO (opcional)
+    public void updateEntityFromUpdateDTO(Deposito deposito, DepositoUpdateDTO dto) {
         if (dto.getNombre() != null) deposito.setNombre(dto.getNombre());
         if (dto.getDireccion() != null) deposito.setDireccion(dto.getDireccion());
         if (dto.getCiudad() != null) deposito.setCiudad(dto.getCiudad());
@@ -49,5 +51,7 @@ public class DepositoMapper {
         if (dto.getTelefono() != null) deposito.setTelefono(dto.getTelefono());
         if (dto.getObservaciones() != null) deposito.setObservaciones(dto.getObservaciones());
         if (dto.getCapacidadMaxima() != null) deposito.setCapacidadMaxima(dto.getCapacidadMaxima());
+        if (dto.getActivo() != null) deposito.setActivo(dto.getActivo());
+        if (dto.getEsPrincipal() != null) deposito.setEsPrincipal(dto.getEsPrincipal());
     }
 }

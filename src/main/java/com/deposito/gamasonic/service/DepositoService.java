@@ -61,7 +61,7 @@ public class DepositoService {
     }
 
     @Transactional
-    public DepositoResponseDTO actualizar(Long id, DepositoUpdateDTO dto) {
+    public DepositoResponseDTO actualizar(Long id, DepositoUpdateDTO dto) {  // ← CAMBIO AQUÍ
         Deposito deposito = depositoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Deposito no encontrado con ID: " + id));
 
