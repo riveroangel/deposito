@@ -2,6 +2,7 @@ package com.deposito.gamasonic.controller;
 
 import com.deposito.gamasonic.dto.DepositoRequestDTO;
 import com.deposito.gamasonic.dto.DepositoResponseDTO;
+import com.deposito.gamasonic.dto.DepositoUpdateDTO;
 import com.deposito.gamasonic.service.DepositoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +54,7 @@ public class DepositoController {
     @PutMapping("/{id}")
     public ResponseEntity<DepositoResponseDTO> actualizar(
             @PathVariable Long id,
-            @Valid @RequestBody DepositoRequestDTO dto) {
+            @Valid @RequestBody DepositoUpdateDTO dto) {
         return ResponseEntity.ok(depositoService.actualizar(id, dto));
     }
 
