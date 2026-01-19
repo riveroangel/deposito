@@ -1,5 +1,6 @@
 package com.deposito.gamasonic.dto;
 
+import com.deposito.gamasonic.entity.CategoriaProducto;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -12,7 +13,7 @@ public class ProductoDTO {
     private String nombre;
     private String descripcion;
     private int stock;
-    private String categoria;
+    private CategoriaProducto categoria;
     private BigDecimal precioCompra;
     private BigDecimal precioVenta;
     private String marca;
@@ -22,7 +23,8 @@ public class ProductoDTO {
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
     private boolean necesitaReposicion; // 🔥 Campo calculado
-
+    // private String estado; // "DISPONIBLE", "BAJO_STOCK", "AGOTADO"
+/*
     // Constructor para compatibilidad con código existente
     public ProductoDTO(Long id, String codigoBarra, String nombre, int stock) {
         this.id = id;
@@ -33,7 +35,7 @@ public class ProductoDTO {
 
     // Constructor completo
     public ProductoDTO(Long id, String codigoBarra, String nombre, String descripcion,
-                       int stock, String categoria, BigDecimal precioCompra,
+                       int stock, CategoriaProducto categoria, BigDecimal precioCompra,
                        BigDecimal precioVenta, String marca, Integer stockMinimo,
                        String ubicacion, boolean activo, LocalDateTime fechaCreacion,
                        LocalDateTime fechaActualizacion, boolean necesitaReposicion) {
@@ -52,5 +54,6 @@ public class ProductoDTO {
         this.fechaCreacion = fechaCreacion;
         this.fechaActualizacion = fechaActualizacion;
         this.necesitaReposicion = necesitaReposicion;
-    }
-}
+
+  */  }
+

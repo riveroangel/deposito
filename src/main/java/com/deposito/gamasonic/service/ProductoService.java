@@ -1,5 +1,6 @@
 package com.deposito.gamasonic.service;
-
+// Posiblemente también necesites:
+import com.deposito.gamasonic.entity.CategoriaProducto;
 import com.deposito.gamasonic.dto.ProductoCreateDTO;
 import com.deposito.gamasonic.dto.ProductoDTO;
 import com.deposito.gamasonic.entity.Producto;
@@ -32,7 +33,7 @@ public class ProductoService {
         producto.setCodigoBarra(dto.getCodigoBarra());
         producto.setNombre(dto.getNombre());
         producto.setDescripcion(dto.getDescripcion());
-        producto.setStock(dto.getStockInicial());
+      //  producto.setStock(dto.getStockInicial());
         producto.setCategoria(dto.getCategoria());
         producto.setPrecioCompra(dto.getPrecioCompra());
         producto.setPrecioVenta(dto.getPrecioVenta());
@@ -83,7 +84,7 @@ public class ProductoService {
         producto.setCodigoBarra(dto.getCodigoBarra());
         producto.setNombre(dto.getNombre());
         producto.setDescripcion(dto.getDescripcion());
-        producto.setStock(dto.getStockInicial());
+      //  producto.setStock(dto.getStockInicial());
         producto.setCategoria(dto.getCategoria());
         producto.setPrecioCompra(dto.getPrecioCompra());
         producto.setPrecioVenta(dto.getPrecioVenta());
@@ -132,31 +133,33 @@ public class ProductoService {
 
     // 🔥 NUEVO: Buscar por categoría
     @Transactional(readOnly = true)
-    public List<ProductoDTO> buscarPorCategoria(String categoria) {
-        return productoRepo.findByCategoria(categoria)
+    public List<ProductoDTO> buscarPorCategoria(CategoriaProducto categoria) {  // ← ENUM
+        return productoRepo.findByCategoria(categoria)  // ← Repo debe aceptar Enum
                 .stream()
                 .map(this::toDTO)
                 .toList();
     }
 
     // 🔥 MÉTODO toDTO ACTUALIZADO
+    // 3. toDTO() simplificado (usa setters):
     private ProductoDTO toDTO(Producto producto) {
-        return new ProductoDTO(
-                producto.getId(),
-                producto.getCodigoBarra(),
-                producto.getNombre(),
-                producto.getDescripcion(),
-                producto.getStock(),
-                producto.getCategoria(),
-                producto.getPrecioCompra(),
-                producto.getPrecioVenta(),
-                producto.getMarca(),
-                producto.getStockMinimo(),
-                producto.getUbicacion(),
-                producto.isActivo(),
-                producto.getFechaCreacion(),
-                producto.getFechaActualizacion(),
-                producto.necesitaReposicion()
-        );
+        ProductoDTO dto = new ProductoDTO();
+        dto.setId(producto.getId());
+        dto.setCodigoBarra(producto.getCodigoBarra());
+        dto.setNombre(producto.getNombre());
+        dto.setDescripcion(producto.getDescripcion());
+        dto.setStock(producto.getStock());
+        dto.setCategoria(producto.getCategoria());  // ← ENUM
+        dto.setPrecioCompra(producto.getPrecioCompra());
+        dto.setPrecioVenta(producto.getPrecioVenta());
+        dto.setMarca(producto.getMarca());
+        dto.setStockMinimo(producto.getStockMinimo());
+        dto.setUbicacion(producto.getUbicacion());
+        dto.setActivo(producto.isActivo());
+        dto.setFechaCreacion(producto.getFechaCreacion());
+        dto.setFechaActualizacion(producto.getFechaActualizacion());
+        dto.setNecesitaReposicion(producto.necesitaReposicion());
+        return dto;
     }
-}
+    }
+

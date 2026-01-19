@@ -1,8 +1,13 @@
 package com.deposito.gamasonic.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -26,14 +31,24 @@ public class StockDeposito {
     @Column(nullable = false)
     private Integer stock = 0;
 
+    @Min(value = 0, message = "El stock mínimo no puede ser negativo")
     @Column(name = "stock_minimo")
     private Integer stockMinimo;
 
+    @Min(value = 1, message = "El stock máximo debe ser al menos 1")
     @Column(name = "stock_maximo")
     private Integer stockMaximo;
 
     @Column(length = 100)
     private String ubicacion;  // Ej: "Estante A-12", "Bodega 3"
+
+    @CreatedDate
+    @Column(name = "fecha_creacion", updatable = false)
+    private LocalDateTime fechaCreacion;
+
+    @LastModifiedDate
+    @Column(name = "fecha_actualizacion")
+    private LocalDateTime fechaActualizacion;
 
     // Métodos de negocio
     public boolean tieneStockSuficiente(int cantidad) {

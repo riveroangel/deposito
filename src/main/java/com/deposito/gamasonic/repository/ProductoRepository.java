@@ -1,5 +1,6 @@
 package com.deposito.gamasonic.repository;
 
+import com.deposito.gamasonic.entity.CategoriaProducto;
 import com.deposito.gamasonic.entity.Producto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -19,7 +20,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     List<Producto> findByNombreContainingIgnoreCase(String nombre);
 
     // 🔥 NUEVO: Buscar por categoría
-    List<Producto> findByCategoria(String categoria);
+    List<Producto> findByCategoria(CategoriaProducto categoria);  // ← ENUM
 
     // 🔥 NUEVO: Buscar activos
     List<Producto> findByActivoTrue();

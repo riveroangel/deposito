@@ -1,12 +1,13 @@
 package com.deposito.gamasonic.dto;
 
+import com.deposito.gamasonic.entity.CategoriaProducto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
 import java.math.BigDecimal;
-
+//Dios es mi Fortaleza El que Creo los Cielos y la Tierra
 @Data
 public class ProductoCreateDTO {
 
@@ -20,10 +21,11 @@ public class ProductoCreateDTO {
 
         @NotNull(message = "El stock inicial es requerido")
         @PositiveOrZero(message = "El stock no puede ser negativo")
-        private Integer stockInicial;
 
-        @NotBlank(message = "La categoría es requerida")
-        private String categoria;
+        private Integer stock;
+
+        @NotNull(message = "La categoría es requerida")
+        private CategoriaProducto categoria;
 
         @NotNull(message = "El precio de compra es requerido")
         @PositiveOrZero(message = "El precio no puede ser negativo")

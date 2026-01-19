@@ -2,6 +2,7 @@ package com.deposito.gamasonic.controller;
 
 import com.deposito.gamasonic.dto.ProductoCreateDTO;
 import com.deposito.gamasonic.dto.ProductoDTO;
+import com.deposito.gamasonic.entity.CategoriaProducto;
 import com.deposito.gamasonic.service.ProductoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/productos")
+@RequestMapping("/api/productos")
 public class ProductoController {
 
     private final ProductoService service;
@@ -47,6 +48,7 @@ public class ProductoController {
     public ProductoDTO actualizar(
             @PathVariable Long id,
             @Valid @RequestBody ProductoCreateDTO dto) {
+        System.out.println("ID recibido: " + id);
         return service.actualizar(id, dto);
     }
 
@@ -75,7 +77,7 @@ public class ProductoController {
 
     // 🔥 NUEVO: Buscar por categoría
     @GetMapping("/categoria/{categoria}")
-    public List<ProductoDTO> buscarPorCategoria(@PathVariable String categoria) {
+    public List<ProductoDTO> buscarPorCategoria( @PathVariable CategoriaProducto categoria) {
         return service.buscarPorCategoria(categoria);
     }
 
