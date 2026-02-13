@@ -1,11 +1,14 @@
 package com.deposito.gamasonic.dto;
 
 import com.deposito.gamasonic.entity.CategoriaProducto;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
+@NoArgsConstructor  // Genera el constructor vacío
+@AllArgsConstructor // Genera el constructor con todos los campos (el que comentaste)
 @Data
 public class ProductoDTO {
     private Long id;
@@ -34,11 +37,24 @@ public class ProductoDTO {
     }
 
     // Constructor completo
-    public ProductoDTO(Long id, String codigoBarra, String nombre, String descripcion,
-                       int stock, CategoriaProducto categoria, BigDecimal precioCompra,
-                       BigDecimal precioVenta, String marca, Integer stockMinimo,
-                       String ubicacion, boolean activo, LocalDateTime fechaCreacion,
-                       LocalDateTime fechaActualizacion, boolean necesitaReposicion) {
+        public ProductoDTO(
+                        Long id,
+                        String codigoBarra,
+                        String nombre,
+                        String descripcion,
+                        int stock,
+                        CategoriaProducto categoria,
+                        BigDecimal precioCompra,
+                        BigDecimal precioVenta,
+                        String marca,
+                        Integer stockMinimo,
+                        String ubicacion,
+                        boolean activo,
+                        LocalDateTime fechaCreacion,
+                        LocalDateTime fechaActualizacion,
+                        boolean necesitaReposicion
+                                                    )
+                        {
         this.id = id;
         this.codigoBarra = codigoBarra;
         this.nombre = nombre;

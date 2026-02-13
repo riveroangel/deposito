@@ -9,8 +9,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+@CrossOrigin(origins = "http://localhost:8000")
 @RestController
 @RequestMapping("/api/productos")
 public class ProductoController {
@@ -21,16 +25,12 @@ public class ProductoController {
         this.service = service;
     }
 
+    // ==============================
+    // GET
+    // ==============================
     @GetMapping
     public List<ProductoDTO> listar() {
         return service.listar();
-    }
-
-    @PostMapping
-   // @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductoDTO> crear(@Valid @RequestBody ProductoCreateDTO dto) {
-        ProductoDTO creado = service.crear(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
     @GetMapping("/{id}")
@@ -43,20 +43,14 @@ public class ProductoController {
         return service.buscarPorCodigo(codigoBarra);
     }
 
-    @PutMapping("/{id}")
-    //@PreAuthorize("hasRole('ADMIN')")
-    public ProductoDTO actualizar(
-            @PathVariable Long id,
-            @Valid @RequestBody ProductoCreateDTO dto) {
-        System.out.println("ID recibido: " + id);
-        return service.actualizar(id, dto);
+    @GetMapping("/buscar")
+    public List<ProductoDTO> buscarPorNombre(@RequestParam String nombre) {
+        return service.buscarPorNombre(nombre);
     }
 
-    @DeleteMapping("/{id}")
-    //@PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        service.eliminar(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/categoria/{categoria}")
+    public List<ProductoDTO> buscarPorCategoria(@PathVariable CategoriaProducto categoria) {
+        return service.buscarPorCategoria(categoria);
     }
 
     @GetMapping("/bajo-stock")
@@ -64,29 +58,80 @@ public class ProductoController {
         return service.buscarBajoStock(limite);
     }
 
-    // 🔥 NUEVO: Productos que necesitan reposición
     @GetMapping("/necesitan-reposicion")
     public List<ProductoDTO> necesitanReposicion() {
         return service.buscarNecesitanReposicion();
     }
 
-    @GetMapping("/buscar")
-    public List<ProductoDTO> buscarPorNombre(@RequestParam String nombre) {
-        return service.buscarPorNombre(nombre);
+    // ==============================
+    // POST
+    // ==============================
+    @PostMapping
+    public ResponseEntity<ProductoDTO> crear(@Valid @RequestBody ProductoCreateDTO dto) {
+        ProductoDTO creado = service.crear(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
-    // 🔥 NUEVO: Buscar por categoría
-    @GetMapping("/categoria/{categoria}")
-    public List<ProductoDTO> buscarPorCategoria( @PathVariable CategoriaProducto categoria) {
-        return service.buscarPorCategoria(categoria);
+    // ==============================
+    // PUT
+    // ==============================
+    @PutMapping("/{id}")
+    public ProductoDTO actualizarPorId(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductoCreateDTO dto) {
+        return service.actualizar(id, dto);
     }
 
-    // 🔥 NUEVO: Activar/desactivar producto
+    @PutMapping("/codigo/{codigoBarra}")
+    public ProductoDTO actualizarPorCodigo(
+            @PathVariable String codigoBarra,
+            @Valid @RequestBody ProductoCreateDTO dto) {
+        return service.actualizarPorCodigo(codigoBarra, dto);
+    }
+
+    // ==============================
+    // DELETE
+    // ==============================
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarPorId(@PathVariable Long id) {
+        service.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/codigo/{codigoBarra}")
+    public ResponseEntity<Void> eliminarPorCodigo(@PathVariable String codigoBarra) {
+        service.eliminarPorCodigo(codigoBarra);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ==============================
+    // PATCH / Activar / Desactivar
+    // ==============================
     @PatchMapping("/{id}/activar")
-   // @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> activarProducto(@PathVariable Long id, @RequestParam boolean activo) {
-        // Nota: Necesitarías implementar este método en el Service
-        // service.cambiarEstado(id, activo);
+    public ResponseEntity<Void> activarProducto(
+            @PathVariable Long id,
+            @RequestParam boolean activo) {
+        service.cambiarEstado(id, activo);
         return ResponseEntity.ok().build();
     }
+
+    // 🔥 AGREGA ESTE MÉTODO PARA DIAGNOSTICAR
+    @PostMapping("/diagnostico")
+    public ResponseEntity<Map<String, Object>> diagnostico(@RequestBody Map<String, Object> body) {
+        try {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "ok");
+            response.put("message", "Endpoint funcionando");
+            response.put("body_recibido", body);
+            response.put("timestamp", LocalDateTime.now());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("status", "error");
+            error.put("message", e.getMessage());
+            error.put("exception", e.getClass().getName());
+            return ResponseEntity.status(500).body(error);
+        }
+    }
 }
+

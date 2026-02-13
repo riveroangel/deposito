@@ -1,8 +1,8 @@
 package com.deposito.gamasonic.service;
-// Posiblemente también necesites:
-import com.deposito.gamasonic.entity.CategoriaProducto;
+
 import com.deposito.gamasonic.dto.ProductoCreateDTO;
 import com.deposito.gamasonic.dto.ProductoDTO;
+import com.deposito.gamasonic.entity.CategoriaProducto;
 import com.deposito.gamasonic.entity.Producto;
 import com.deposito.gamasonic.exception.DuplicadoException;
 import com.deposito.gamasonic.exception.ProductoNoEncontradoException;
@@ -21,127 +21,116 @@ public class ProductoService {
         this.productoRepo = productoRepo;
     }
 
-    @Transactional
-    public ProductoDTO crear(ProductoCreateDTO dto) {
-        // Validar código único
-        if (productoRepo.existsByCodigoBarra(dto.getCodigoBarra())) {
-            throw new DuplicadoException("Ya existe un producto con el código de barras: " + dto.getCodigoBarra());
-        }
-
-        // 🔥 CREAR PRODUCTO CON TODOS LOS CAMPOS NUEVOS
-        Producto producto = new Producto();
-        producto.setCodigoBarra(dto.getCodigoBarra());
-        producto.setNombre(dto.getNombre());
-        producto.setDescripcion(dto.getDescripcion());
-      //  producto.setStock(dto.getStockInicial());
-        producto.setCategoria(dto.getCategoria());
-        producto.setPrecioCompra(dto.getPrecioCompra());
-        producto.setPrecioVenta(dto.getPrecioVenta());
-        producto.setMarca(dto.getMarca());
-        producto.setStockMinimo(dto.getStockMinimo());
-        producto.setUbicacion(dto.getUbicacion());
-        // activo y fechas se setean automáticamente con @PrePersist
-
-        Producto saved = productoRepo.save(producto);
-        return toDTO(saved);
-    }
-
-    @Transactional(readOnly = true)
+    // ==============================
+    // LISTAR
+    // ==============================
     public List<ProductoDTO> listar() {
-        return productoRepo.findAll()
-                .stream()
+        return productoRepo.findAll().stream()
                 .map(this::toDTO)
                 .toList();
     }
 
-    @Transactional(readOnly = true)
-    public ProductoDTO buscarPorId(Long id) {
-        Producto producto = productoRepo.findById(id)
-                .orElseThrow(() -> new ProductoNoEncontradoException("Producto no encontrado con ID: " + id));
+    // ==============================
+    // CREAR
+    // ==============================
+    @Transactional
+    public ProductoDTO crear(ProductoCreateDTO dto) {
+        if (productoRepo.existsByCodigoBarra(dto.getCodigoBarra())) {
+            throw new DuplicadoException("Ya existe un producto con código: " + dto.getCodigoBarra());
+        }
+        Producto producto = new Producto();
+        producto.setCodigoBarra(dto.getCodigoBarra());
+        producto.setNombre(dto.getNombre());
+        producto.setDescripcion(dto.getDescripcion());
+        producto.setStock(dto.getStock());
+        producto.setCategoria(dto.getCategoria());
+        producto.setPrecioCompra(dto.getPrecioCompra());
+        producto.setPrecioVenta(dto.getPrecioVenta());
+        producto.setMarca(dto.getMarca());
+        producto.setUbicacion(dto.getUbicacion());
+        producto.setStockMinimo(dto.getStockMinimo());
+        producto.setActivo(true);
+
+        producto = productoRepo.save(producto);
         return toDTO(producto);
     }
 
-    @Transactional(readOnly = true)
-    public ProductoDTO buscarPorCodigo(String codigoBarra) {
-        Producto producto = productoRepo.findByCodigoBarra(codigoBarra)
-                .orElseThrow(() -> new ProductoNoEncontradoException(
-                        "Producto no encontrado con código: " + codigoBarra));
-        return toDTO(producto);
-    }
-
+    // ==============================
+    // ACTUALIZAR POR ID
+    // ==============================
     @Transactional
     public ProductoDTO actualizar(Long id, ProductoCreateDTO dto) {
         Producto producto = productoRepo.findById(id)
                 .orElseThrow(() -> new ProductoNoEncontradoException("Producto no encontrado con ID: " + id));
 
-        // Validar que el nuevo código no esté duplicado (si cambió)
         if (!producto.getCodigoBarra().equals(dto.getCodigoBarra()) &&
                 productoRepo.existsByCodigoBarra(dto.getCodigoBarra())) {
             throw new DuplicadoException("Ya existe un producto con código: " + dto.getCodigoBarra());
         }
 
-        // 🔥 ACTUALIZAR TODOS LOS CAMPOS
-        producto.setCodigoBarra(dto.getCodigoBarra());
-        producto.setNombre(dto.getNombre());
-        producto.setDescripcion(dto.getDescripcion());
-      //  producto.setStock(dto.getStockInicial());
-        producto.setCategoria(dto.getCategoria());
-        producto.setPrecioCompra(dto.getPrecioCompra());
-        producto.setPrecioVenta(dto.getPrecioVenta());
-        producto.setMarca(dto.getMarca());
-        producto.setStockMinimo(dto.getStockMinimo());
-        producto.setUbicacion(dto.getUbicacion());
-        // fechaActualizacion se actualiza automáticamente con @PreUpdate
-
-        Producto updated = productoRepo.save(producto);
-        return toDTO(updated);
+        actualizarCampos(producto, dto);
+        producto = productoRepo.save(producto);
+        return toDTO(producto);
     }
 
+    // ==============================
+    // ACTUALIZAR POR CÓDIGO
+    // ==============================
+    @Transactional
+    public ProductoDTO actualizarPorCodigo(String codigoBarra, ProductoCreateDTO dto) {
+        Producto producto = productoRepo.findByCodigoBarra(codigoBarra)
+                .orElseThrow(() -> new ProductoNoEncontradoException(
+                        "Producto no encontrado con código: " + codigoBarra
+                ));
+
+        if (!producto.getCodigoBarra().equals(dto.getCodigoBarra()) &&
+                productoRepo.existsByCodigoBarra(dto.getCodigoBarra())) {
+            throw new DuplicadoException(
+                    "Ya existe un producto con código: " + dto.getCodigoBarra()
+            );
+        }
+
+        actualizarCampos(producto, dto);
+        producto = productoRepo.save(producto);
+        return toDTO(producto);
+    }
+
+    // ==============================
+    // ELIMINAR POR ID
+    // ==============================
     @Transactional
     public void eliminar(Long id) {
-        if (!productoRepo.existsById(id)) {
-            throw new ProductoNoEncontradoException("Producto no encontrado con ID: " + id);
-        }
-        productoRepo.deleteById(id);
+        Producto producto = productoRepo.findById(id)
+                .orElseThrow(() -> new ProductoNoEncontradoException("Producto no encontrado con ID: " + id));
+        productoRepo.delete(producto);
     }
 
-    @Transactional(readOnly = true)
-    public List<ProductoDTO> buscarBajoStock(int limiteStock) {
-        return productoRepo.findByStockLessThan(limiteStock)
-                .stream()
-                .map(this::toDTO)
-                .toList();
+    // ==============================
+    // ELIMINAR POR CÓDIGO
+    // ==============================
+    @Transactional
+    public void eliminarPorCodigo(String codigoBarra) {
+        Producto producto = productoRepo.findByCodigoBarra(codigoBarra)
+                .orElseThrow(() -> new ProductoNoEncontradoException(
+                        "Producto no encontrado con código: " + codigoBarra
+                ));
+        productoRepo.delete(producto);
     }
 
-    @Transactional(readOnly = true)
-    public List<ProductoDTO> buscarPorNombre(String nombre) {
-        return productoRepo.findByNombreContainingIgnoreCase(nombre)
-                .stream()
-                .map(this::toDTO)
-                .toList();
+    // ==============================
+    // ACTIVAR / DESACTIVAR
+    // ==============================
+    @Transactional
+    public void cambiarEstado(Long id, boolean activo) {
+        Producto producto = productoRepo.findById(id)
+                .orElseThrow(() -> new ProductoNoEncontradoException("Producto no encontrado con ID: " + id));
+        producto.setActivo(activo);
+        productoRepo.save(producto);
     }
 
-    // 🔥 NUEVO: Buscar productos que necesitan reposición (stock < stockMinimo)
-    @Transactional(readOnly = true)
-    public List<ProductoDTO> buscarNecesitanReposicion() {
-        return productoRepo.findAll()
-                .stream()
-                .filter(Producto::necesitaReposicion)
-                .map(this::toDTO)
-                .toList();
-    }
-
-    // 🔥 NUEVO: Buscar por categoría
-    @Transactional(readOnly = true)
-    public List<ProductoDTO> buscarPorCategoria(CategoriaProducto categoria) {  // ← ENUM
-        return productoRepo.findByCategoria(categoria)  // ← Repo debe aceptar Enum
-                .stream()
-                .map(this::toDTO)
-                .toList();
-    }
-
-    // 🔥 MÉTODO toDTO ACTUALIZADO
-    // 3. toDTO() simplificado (usa setters):
+    // ==============================
+    // MAPPER
+    // ==============================
     private ProductoDTO toDTO(Producto producto) {
         ProductoDTO dto = new ProductoDTO();
         dto.setId(producto.getId());
@@ -149,17 +138,80 @@ public class ProductoService {
         dto.setNombre(producto.getNombre());
         dto.setDescripcion(producto.getDescripcion());
         dto.setStock(producto.getStock());
-        dto.setCategoria(producto.getCategoria());  // ← ENUM
+        dto.setCategoria(producto.getCategoria());
         dto.setPrecioCompra(producto.getPrecioCompra());
         dto.setPrecioVenta(producto.getPrecioVenta());
         dto.setMarca(producto.getMarca());
-        dto.setStockMinimo(producto.getStockMinimo());
         dto.setUbicacion(producto.getUbicacion());
+        dto.setStockMinimo(producto.getStockMinimo());
         dto.setActivo(producto.isActivo());
         dto.setFechaCreacion(producto.getFechaCreacion());
         dto.setFechaActualizacion(producto.getFechaActualizacion());
-        dto.setNecesitaReposicion(producto.necesitaReposicion());
+
+        // 🔥 CORRECCIÓN: Manejar null en stockMinimo
+        if (producto.getStockMinimo() != null) {
+            dto.setNecesitaReposicion(producto.getStock() <= producto.getStockMinimo());
+        } else {
+            dto.setNecesitaReposicion(false); // Si no hay stock mínimo, no necesita reposición
+        }
+
         return dto;
-    }
+
+
     }
 
+    // ==============================
+    // UTILITY: Actualizar campos
+    // ==============================
+    private void actualizarCampos(Producto producto, ProductoCreateDTO dto) {
+        producto.setCodigoBarra(dto.getCodigoBarra());
+        producto.setNombre(dto.getNombre());
+        producto.setDescripcion(dto.getDescripcion());
+        producto.setStock(dto.getStock());
+        producto.setCategoria(dto.getCategoria());
+        producto.setPrecioCompra(dto.getPrecioCompra());
+        producto.setPrecioVenta(dto.getPrecioVenta());
+        producto.setMarca(dto.getMarca());
+        producto.setUbicacion(dto.getUbicacion());
+        producto.setStockMinimo(dto.getStockMinimo());
+    }
+    public List<ProductoDTO> buscarPorNombre(String nombre) {
+        return productoRepo.findAll().stream()
+                .filter(p -> p.getNombre().toLowerCase().contains(nombre.toLowerCase()))
+                .map(this::toDTO)
+                .toList();
+    }
+
+
+    public ProductoDTO buscarPorId(Long id) {
+        Producto producto = productoRepo.findById(id)
+                .orElseThrow(() -> new ProductoNoEncontradoException("Producto no encontrado con ID: " + id));
+        return toDTO(producto);
+    }
+    public ProductoDTO buscarPorCodigo(String codigoBarra) {
+        Producto producto = productoRepo.findByCodigoBarra(codigoBarra)
+                .orElseThrow(() -> new ProductoNoEncontradoException(
+                        "Producto no encontrado con código: " + codigoBarra
+                ));
+        return toDTO(producto);
+    }
+    public List<ProductoDTO> buscarPorCategoria(CategoriaProducto categoria) {
+        return productoRepo.findAll().stream()
+                .filter(p -> p.getCategoria() == categoria)
+                .map(this::toDTO)
+                .toList();
+    }
+    public List<ProductoDTO> buscarBajoStock(int limite) {
+        return productoRepo.findAll().stream()
+                .filter(p -> p.getStock() <= limite)
+                .map(this::toDTO)
+                .toList();
+    }
+    public List<ProductoDTO> buscarNecesitanReposicion() {
+        return productoRepo.findAll().stream()
+                .filter(p -> p.getStock() <= p.getStockMinimo())
+                .map(this::toDTO)
+                .toList();
+    }
+
+}

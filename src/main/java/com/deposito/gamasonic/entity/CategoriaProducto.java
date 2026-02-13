@@ -4,9 +4,15 @@ public enum
  CategoriaProducto
     {
         ELECTRONICA,
-        VIDEOJUEGOS,
-        ACCESORIOS,
-        CONSOLAS,
+        MONOPATIN,
+        BICICLETA,
+        VEHICULOGOLF,
+        ACCESORIO,
+        UPS,
+        ESTABILIZADORES,
+        PROTECTORES,
+        LUCESEMERGENCIA,
+        LINTERNAS,
         MERCHANDISING
     }
 

@@ -25,6 +25,7 @@ public class Producto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @NotBlank(message = "El código de barras es obligatorio")
     @Size(min = 3, max = 50, message = "El código debe tener entre 3 y 50 caracteres")
     @Column(unique = true, nullable = false)
@@ -109,7 +110,8 @@ public class Producto {
 
     // 🔥 Método útil para negocio
     public boolean necesitaReposicion() {
-        return stockMinimo != null && stock < stockMinimo;
+
+        return stockMinimo != null && stock <= stockMinimo;
     }
 
     // 🔥 Método para agregar movimiento de inventario
@@ -125,9 +127,9 @@ public class Producto {
 
 
         // Actualizar stock según tipo de movimiento
-        if ("ENTRADA".equals(tipo)) {
+        if (tipo == TipoMovimiento.ENTRADA) {
             this.stock += cantidad;
-        } else if ("SALIDA".equals(tipo)) {
+        } else if (tipo == TipoMovimiento.SALIDA) {
             this.stock -= cantidad;
         }
 
