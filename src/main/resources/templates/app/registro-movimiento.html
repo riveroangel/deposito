@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gamasonic Mobile</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- CSS Externo -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/scanner.css">
+
+    <!-- Librerías externas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body class="bg-slate-100 font-sans">
+
+<div class="max-w-md mx-auto min-h-screen flex flex-col">
+    <header class="bg-blue-800 text-white p-6 shadow-lg rounded-b-3xl">
+        <h1 class="text-xl font-bold text-center">GAMASONIC DEPÓSITO</h1>
+        <p class="text-xs text-blue-200 text-center uppercase tracking-widest mt-1">Registro de Movimientos</p>
+    </header>
+
+    <main class="p-4 flex-grow">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <form th:action="@{/api/registrar}" method="POST" id="registroForm">
+                <input type="hidden" name="_csrf" th:value="${_csrf?.token}" />
+
+                <div th:if="${error}" class="mb-4 p-4 bg-red-100 text-red-700 rounded-xl text-center font-bold" role="alert">
+                    ⚠️ <span th:text="${error}"></span>
+                </div>
+                <div th:if="${param.exito}" class="mb-4 p-4 bg-green-100 text-green-700 rounded-xl text-center font-bold" role="alert">
+                    ✅ ¡Registrado con éxito!
+                </div>
+
+                <!-- Operario Responsable -->
+                <div class="mb-6">
+                    <label class="block text-slate-500 text-xs font-bold mb-2 uppercase">Operario Responsable</label>
+                    <select name="nombreOperario" id="nombreOperario" required class="w-full bg-blue-50 border-2 border-blue-100 p-4 rounded-xl font-bold text-blue-800 outline-none focus:border-blue-600">
+                        <option value="">¿Quién eres?</option>
+                        <th:block th:each="u : ${operarios}">
+                            <option th:value="${u.username}" th:text="${u.username}"></option>
+                        </th:block>
+                    </select>
+                </div>
+
+                <!-- Producto -->
+                <div class="mb-6">
+                    <label class="block text-slate-500 text-xs font-bold mb-2 uppercase">Producto</label>
+                    <select name="codigoBarra" id="codigoBarra" required class="w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-xl focus:border-blue-500 outline-none transition-colors duration-300">
+                        <option value="">Seleccionar...</option>
+                        <th:block th:each="p : ${productos}">
+                            <option th:value="${p.codigoBarra}" th:text="${p.nombre}"></option>
+                        </th:block>
+                    </select>
+                </div>
+
+                <!-- Tipo de Operación -->
+                <div class="mb-6">
+                    <label class="block text-slate-500 text-xs font-bold mb-2 uppercase">Tipo de Operación</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="tipo" value="ENTRADA" class="hidden peer" checked>
+                            <div class="p-4 text-center rounded-xl border-2 border-slate-100 font-bold text-slate-400 peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-600 transition-all">
+                                ENTRADA
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="tipo" value="SALIDA" class="hidden peer">
+                            <div class="p-4 text-center rounded-xl border-2 border-slate-100 font-bold text-slate-400 peer-checked:border-red-500 peer-checked:bg-red-50 peer-checked:text-red-600 transition-all">
+                                SALIDA
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Cantidad -->
+                <div class="mb-8">
+                    <label class="block text-slate-500 text-xs font-bold mb-2 uppercase" for="cantidad">Cantidad</label>
+                    <input type="number" name="cantidad" id="cantidad" required placeholder="0" min="1" class="w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-xl text-3xl text-center font-bold focus:border-blue-500 outline-none">
+                </div>
+
+                <div class="mt-6 text-center">
+                    <a href="/productos/nuevo" class="text-blue-600 font-bold text-sm border-b-2 border-blue-600 pb-1 hover:text-blue-800 transition-colors">
+                        ➕ REGISTRAR PRODUCTO NUEVO
+                    </a>
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold text-lg shadow-blue-200 shadow-xl active:scale-95 transition-all hover:bg-blue-700">
+                    <span class="submit-text">CONFIRMAR REGISTRO</span>
+                    <span class="loading-text hidden">PROCESANDO...</span>
+                </button>
+            </form>
+        </div>
+
+
+        <!-- Botón Escanear (versión simple) -->
+        <div class="mt-4">
+            <button type="button" onclick="empezarEscaneo()"
+                    class="w-full bg-slate-800 text-white py-2 rounded-lg font-bold text-sm flex items-center justify-center gap-2 hover:bg-slate-900 transition-colors">
+                📷 Escanear Código
+            </button>
+        </div>
+
+        <!-- Contenedor del escáner -->
+        <div id="reader" class="mt-4 overflow-hidden rounded-xl border-2 border-dashed border-slate-200 relative" style="display:none;">
+            <div id="scannerLoading" class="absolute inset-0 bg-white bg-opacity-90 flex-col items-center justify-center z-10 hidden">
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+                <p class="text-sm text-slate-600 mt-4 font-medium" id="scannerStatus">Iniciando cámara...</p>
+            </div>
+            <div class="absolute top-2 right-2 z-20">
+                <button type="button" id="btnCancelarEscaneo" class="bg-red-500 text-white p-2 rounded-full w-10 h-10 flex items-center justify-center hover:bg-red-600" aria-label="Cancelar escaneo">✕</button>
+            </div>
+            <div class="absolute bottom-2 right-2 z-20">
+                <button type="button" id="flashBtn" class="bg-yellow-500 text-white p-2 rounded-full w-10 h-10 hidden hover:bg-yellow-600" aria-label="Encender/apagar linterna">🔦</button>
+            </div>
+        </div>
+
+        <!-- Contenedor para notificaciones toast -->
+        <div id="toastContainer" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 space-y-2 pointer-events-none"></div>
+
+        <!-- Historial de movimientos -->
+        <div class="mt-8">
+            <h2 class="text-slate-500 text-xs font-bold mb-4 uppercase tracking-wider">Últimos 5 movimientos</h2>
+            <div class="space-y-3">
+                <th:block th:each="m : ${historial}">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 flex justify-between items-center transition-all hover:shadow-md"
+                         th:classappend="${m.cantidad > 0 ? 'border-l-green-500' : 'border-l-red-500'}">
+                        <div>
+                            <p class="font-bold text-slate-800 text-sm" th:text="${m.nombreProducto}"></p>
+                            <p class="text-[10px] text-slate-400">
+                                <span th:text="${m.usuario}"></span> •
+                                <span th:text="${#temporals.format(m.fecha, 'HH:mm')}"></span> hs
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-black text-lg"
+                               th:classappend="${m.cantidad > 0 ? 'text-green-600' : 'text-red-600'}"
+                               th:text="${(m.cantidad > 0 ? '+' : '') + m.cantidad}">
+                            </p>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Script simple para el escáner (AGREGAR ESTO) -->
+<!-- SCRIPT SIMPLE Y FUNCIONAL PARA EL ESCÁNER -->
+<script>
+    // Escáner ULTRA SIMPLE para códigos de barra
+    let html5QrCode;
+
+    window.empezarEscaneo = async function() {
+        const reader = document.getElementById('reader');
+        reader.style.display = 'block';
+
+        try {
+            html5QrCode = new Html5Qrcode("reader");
+
+            // CONFIGURACIÓN OBLIGADA para códigos de barra
+            const config = {
+                fps: 25,  // Más lento = más preciso
+                qrbox: { width: 320, height: 220 },
+                aspectRatio: 1.0,
+                disableFlip: true,  // Evita confusiones
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.EAN_13,  // ARGENTINA (779)
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39
+                ]
+            };
+
+            await html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                (text) => {  // LEYÓ ALGO
+                    console.log('✅ LEÍDO:', text);
+                    document.getElementById('codigoBarra').value = text;
+
+                    // Feedback
+                    const input = document.getElementById('codigoBarra');
+                    input.style.backgroundColor = '#d1fae5';
+                    input.style.borderColor = '#10b981';
+
+                    detenerCamara();
+                    if (window.navigator.vibrate) window.navigator.vibrate(200);
+
+                    // Volver a color normal después de 1 segundo
+                    setTimeout(() => {
+                        input.style.backgroundColor = '';
+                        input.style.borderColor = '';
+                    }, 1000);
+                },
+                (error) => {
+                    // Ignorar errores de escaneo (son normales)
+                }
+            );
+        } catch (error) {
+            console.error('Error cámara:', error);
+            alert('Permití el acceso a la cámara');
+            reader.style.display = 'none';
+        }
+    };
+
+    window.detenerCamara = async function() {
+        if (html5QrCode) {
+            await html5QrCode.stop();
+            document.getElementById('reader').style.display = 'none';
+            html5QrCode = null;
+        }
+    };
+
+    // Ocultar lector al inicio
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('reader').style.display = 'none';
+    });
+</script>
+<!-- JavaScript Externo en orden correcto -->
+<!-- <script src="/js/config/mensajes.js"></script>
+ <script src="/js/utils/notificaciones.js"></script>
+ <script src="/js/utils/validadores.js"></script>
+ <script src="/js/scanner/camara.js"></script>
+ <script src="/js/scanner/scan-handler.js"></script>
+ <script src="/js/scanner/scanner.js"></script>
+ <script src="/js/forms/registro-movimiento.js"></script>
+ <script src="/js/app.js"></script> --->
+
+</body>
+</html>

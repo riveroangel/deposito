@@ -25,7 +25,10 @@ public class ProductoDTO {
     private boolean activo;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
-    private boolean necesitaReposicion; // 🔥 Campo calculado
+    private boolean necesitaReposicion;
+
+
+    // 🔥 Campo calculado
     // private String estado; // "DISPONIBLE", "BAJO_STOCK", "AGOTADO"
 /*
     // Constructor para compatibilidad con código existente

@@ -3,10 +3,10 @@ spring:
     name: gamasonic
 
   datasource:
-    url:  jdbc:h2:file:./data/gamasonic-db;MODE=PostgreSQL
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: ""
+    url: jdbc:postgresql://localhost:5432/depositodb
+    driver-class-name: org.postgresql.Driver
+    username: miguel1
+    password: _cLg9qnviY-"u%,
 
   jpa:
     hibernate:
@@ -15,31 +15,40 @@ spring:
     properties:
       hibernate:
         format_sql: true
-      #  dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    h2:
+      console:
+        enabled: false
 
-  h2:
-    console:
-      enabled: false
-      path: /h2-console
+  # ⭐ CORREGIDO: Archivos estáticos desde el classpath
+  web:
+    resources:
+      static-locations: classpath:/static/  # ← CAMBIADO
+      add-mappings: true
+      cache:
+        period: 0
 
-
+  # ⭐ AGREGADO: Configuración MVC
+  mvc:
+    static-path-pattern: /**
 
 server:
-  port: ${PORT:8080}
+  port: 8443
+  ssl:
+    key-store: file:/opt/deposito/keystore.p12
+    key-store-password: gamasonic123
+    key-store-type: PKCS12
+    key-alias: tomcat
   error:
-    include-stacktrace: always  # ⭐ NUEVO: Mostrar stack traces
-    include-message: always     # ⭐ NUEVO: Mostrar mensajes
-    include-exception: true     # ⭐ NUEVO: Mostrar excepciones
+    include-stacktrace: always
+    include-message: always
+    include-exception: true
 
 logging:
-      level:
-        root: WARN  # Cambiado de INFO a WARN para menos ruido
-        #org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: INFO
-        org.hibernate.SQL: DEBUG # ⭐ CAMBIADO: De WARN a DEBUG
-
-        com.deposito.gamasonic: DEBUG  # ⭐ CAMBIADO: De INFO a DEBUG
-        org.springframework: DEBUG      # ⭐ NUEVO: Debug para Spring
-        org.springframework.web: DEBUG  # ⭐ NUEVO: Debug para web
-
-        org.hibernate.type: TRACE       # ⭐ NUEVO: Ver parámetros SQL
-        org.springframework.transaction: DEBUG  # ⭐ NUEVO
+  level:
+    root: WARN
+    org.hibernate.SQL: DEBUG
+    com.deposito.gamasonic: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.type: TRACE
+    org.springframework.transaction: DEBUG

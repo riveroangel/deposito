@@ -12,7 +12,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/reportes")
+@RequestMapping("/api/v1/reportes")
 //@PreAuthorize("hasRole('ADMIN')")
 public class ReporteController {
 

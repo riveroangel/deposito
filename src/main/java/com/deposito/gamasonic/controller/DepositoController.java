@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/depositos")
+@RequestMapping("/api/v1/depositos")
 @RequiredArgsConstructor
 public class DepositoController {
 

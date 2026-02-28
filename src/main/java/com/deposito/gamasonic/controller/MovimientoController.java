@@ -13,7 +13,7 @@ import com.deposito.gamasonic.service.MovimientoService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/movimientos")
+@RequestMapping("api/v1/movimientos")
 public class MovimientoController {
 
     private final MovimientoService service;
@@ -44,7 +44,7 @@ public class MovimientoController {
 
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+   // @PreAuthorize("hasRole('ADMIN')")
     public List<MovimientoDTO> listar() {
         return service.listar();
     }

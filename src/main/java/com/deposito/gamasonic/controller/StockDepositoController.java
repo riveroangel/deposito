@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/stock-deposito")
+@RequestMapping("/api/v1/stock-deposito")
 //@PreAuthorize("hasRole('ADMIN')")
 public class StockDepositoController {
 

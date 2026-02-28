@@ -3,6 +3,7 @@ package com.deposito.gamasonic.service;
 import com.deposito.gamasonic.dto.MovimientoDTO;
 import com.deposito.gamasonic.dto.MovimientoEntradaDTO;
 import com.deposito.gamasonic.dto.MovimientoSalidaDTO;
+import com.deposito.gamasonic.dto.UsuarioProductividadDTO;
 import com.deposito.gamasonic.entity.Movimiento;
 import com.deposito.gamasonic.entity.Producto;
 import com.deposito.gamasonic.entity.TipoMovimiento;
@@ -150,6 +151,30 @@ public class MovimientoService {
                 usernameFinal,
                 movimiento.getFecha()
         );
+    }
+    @Transactional(readOnly = true)
+    public List<MovimientoDTO> listarUltimosCinco() {
+        return movimientoRepo.findTop5ByOrderByFechaDesc() // Necesitarás crear este método en el Repository
+                .stream()
+                .map(m -> new MovimientoDTO(
+                        m.getId(),
+                        m.getProducto().getNombre(),
+                        m.getProducto().getCodigoBarra(),
+                        m.getTipo() == TipoMovimiento.SALIDA ? -m.getCantidad() : m.getCantidad(),
+                        m.getUsuario() != null ? m.getUsuario().getUsername() : "SISTEMA",
+                        m.getFecha()
+                ))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<UsuarioProductividadDTO> obtenerRankingHoy() {
+        // Definimos el inicio del día actual (00:00:00)
+        java.time.LocalDateTime inicioHoy = java.time.LocalDateTime.now()
+                .with(java.time.LocalTime.MIN);
+
+        // Llamamos al repositorio que creamos en el paso anterior
+        return movimientoRepo.obtenerProductividadDelDia(inicioHoy);
     }
 
     @Transactional(readOnly = true)

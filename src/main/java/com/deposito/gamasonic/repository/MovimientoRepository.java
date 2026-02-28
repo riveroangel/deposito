@@ -1,10 +1,13 @@
 package com.deposito.gamasonic.repository;
 
+import com.deposito.gamasonic.dto.UsuarioProductividadDTO;
 import com.deposito.gamasonic.entity.Movimiento;
+import com.deposito.gamasonic.entity.TipoMovimiento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,26 +22,40 @@ public interface MovimientoRepository extends JpaRepository <Movimiento, Long> {
 """)
     List<Movimiento> findAllWithRelations();
 
+    @Query("""
+    SELECT new com.deposito.gamasonic.dto.UsuarioProductividadDTO(u.username, COUNT(m))
+    FROM Movimiento m
+    JOIN m.usuario u
+    WHERE m.fecha >= :inicioDia
+    GROUP BY u.username
+    ORDER BY COUNT(m) DESC
+""")
+    List<UsuarioProductividadDTO> obtenerProductividadDelDia(@Param("inicioDia") java.time.LocalDateTime inicioDia);
+
+    // 1. Para el Historial del Celular (Automático por nombre)
+    // Spring hace el JOIN solo si es necesario, pero si querés optimizar:
+    @Query("SELECT m FROM Movimiento m JOIN FETCH m.producto LEFT JOIN FETCH m.usuario ORDER BY m.fecha DESC LIMIT 5")
+    List<Movimiento> findTop5ByOrderByFechaDesc();
+
     // 🔥 NUEVOS MÉTODOS PARA DASHBOARD
     long countByFechaAfter(LocalDateTime fecha);
-
-    long countByTipoAndFechaAfter(String tipo, LocalDateTime fecha);
-
-    long countByTipoAndFechaBetween(String tipo, LocalDateTime inicio, LocalDateTime fin);
+    long countByTipoAndFechaAfter(TipoMovimiento tipo, LocalDateTime fecha);
+    // Si querés saber cuántas entradas hubo en los últimos 30 día
+    long countByTipoAndFechaBetween(TipoMovimiento tipo, LocalDateTime inicio, LocalDateTime fin);
 
     // Consulta nativa para productos más movidos
-    @Query(value = """
-        SELECT p.id, p.nombre, COUNT(m.id) as total_movimientos 
-        FROM movimiento m 
-        JOIN producto p ON m.producto_id = p.id 
+    @Query("""
+        SELECT p.id, p.nombre, COUNT(m.id) 
+        FROM Movimiento m 
+        JOIN m.producto p 
         WHERE m.fecha >= :fechaInicio 
         GROUP BY p.id, p.nombre 
-        ORDER BY total_movimientos DESC 
-        LIMIT :limite
-        """, nativeQuery = true)
+        ORDER BY COUNT(m.id) DESC
+        """)
     List<Object[]> findProductosMasMovidos(
             @Param("fechaInicio") LocalDateTime fechaInicio,
-            @Param("limite") int limite);
+            org.springframework.data.domain.Pageable pageable);
+    // Nota: Para el LIMIT en JPQL se usa Pageable
 
     // Valor total de entradas
     @Query("""
@@ -79,17 +96,16 @@ public interface MovimientoRepository extends JpaRepository <Movimiento, Long> {
             @Param("productoId") Long productoId,
             @Param("tipo") String tipo);
 
-    @Query(value = """
-    SELECT p.nombre, SUM(m.cantidad) as total_vendido, 
-           SUM(m.cantidad * p.precio_venta) as valor_total 
-    FROM movimiento m 
-    JOIN producto p ON m.producto_id = p.id 
-    WHERE m.tipo = 'SALIDA' 
-    AND m.fecha BETWEEN :inicio AND :fin 
-    GROUP BY p.id, p.nombre 
-    ORDER BY total_vendido DESC
-    """, nativeQuery = true)
+    // 2. Ventas por producto (Cambiado a JPQL)
+    @Query("""
+        SELECT p.nombre, SUM(m.cantidad), SUM(m.cantidad * p.precioVenta) 
+        FROM Movimiento m 
+        JOIN m.producto p 
+        WHERE m.tipo = 'SALIDA' 
+        AND m.fecha BETWEEN :inicio AND :fin 
+        GROUP BY p.id, p.nombre 
+        ORDER BY SUM(m.cantidad) DESC
+        """)
     List<Object[]> findVentasPorProducto(
             @Param("inicio") LocalDateTime inicio,
-            @Param("fin") LocalDateTime fin);
-}
+            @Param("fin") LocalDateTime fin);}

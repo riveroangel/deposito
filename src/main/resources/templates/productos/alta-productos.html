@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Alta Producto | Gamasonic</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/scanner.css">
+
+    <!-- Librerías externas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body class="bg-slate-100 font-sans p-2">
+
+<div class="max-w-md mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
+    <header class="bg-blue-900 text-white p-5 text-center">
+        <h1 class="text-xl font-black tracking-tighter">GAMASONIC</h1>
+        <p class="text-[10px] text-blue-300 uppercase tracking-[0.2em] font-bold">Maestro de Inventario</p>
+    </header>
+
+    <formaction th:="@{/productos/guardar}" method="POST" class="p-5 space-y-4" id="altaProductoForm">
+        <!-- Token CSRF -->
+        <input type="hidden" name="_csrf" th:value="${_csrf?.token}" />
+
+        <!-- Mensajes de éxito/error -->
+        <div th:if="${exito}" class="p-3 bg-green-50 border border-green-200 text-green-700 rounded-xl text-center text-sm font-bold animate-bounce" role="alert">
+            ✅ <span th:text="${exito}">Producto guardado correctamente</span>
+        </div>
+        <div th:if="${error}" class="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-center text-sm font-bold" th:text="${error}" role="alert">
+        </div>
+
+        <!-- Sección de Código de Barras -->
+        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1" for="codigoBarra">
+                Código de Barras *
+            </label>
+            <div class="flex gap-2">
+                <input type="text" name="codigoBarra" id="codigoBarra" required
+                       placeholder="Ingresar o escanear"
+                       aria-label="Código de barras del producto"
+                       class="flex-grow bg-white border-2 border-slate-200 p-2 rounded-xl outline-none focus:border-blue-500 font-mono text-lg transition-colors duration-300">
+                <!-- Botón con onclick directo al script simple -->
+                <button type="button" onclick="empezarEscaneo()"
+                        class="bg-blue-600 text-white px-4 rounded-xl shadow-md hover:bg-blue-700 active:bg-blue-800 transition-all focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        aria-label="Escanear código de barras">
+                    📷
+                </button>
+            </div>
+
+            <!-- Contenedor del escáner -->
+            <div id="reader" class="mt-3 hidden rounded-xl border-2 border-dashed border-slate-300 overflow-hidden relative">
+                <!-- Indicador de carga -->
+                <div id="scannerLoading" class="absolute inset-0 bg-white bg-opacity-90 flex-col items-center justify-center z-10 hidden">
+                    <div class="animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
+                    <p class="text-xs text-slate-600 mt-2 font-medium" id="scannerStatus">Iniciando cámara...</p>
+                </div>
+
+                <!-- Botón para cancelar escaneo -->
+                <div class="absolute top-2 right-2 z-20">
+                    <button type="button" onclick="detenerCamara()"
+                            class="bg-red-500 text-white p-1.5 rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-300"
+                            aria-label="Cancelar escaneo">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <p class="text-[10px] text-slate-400 mt-1">
+                ⚡ Escanea o ingresa manualmente el código de barras
+            </p>
+        </div>
+
+        <!-- Datos del Producto -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="col-span-2">
+                <label class="block text-[10px] font-black text-slate-400 uppercase mb-1" for="nombre">
+                    Nombre del Producto *
+                </label>
+                <input type="text" name="nombre" id="nombre" required
+                       placeholder="Ej: MONOPATIN ELECTRICO X7"
+                       class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-black text-slate-400 uppercase mb-1" for="marca">
+                    Marca
+                </label>
+                <input type="text" name="marca" id="marca"
+                       placeholder="Ej: XIAOMI"
+                       class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-black text-slate-400 uppercase mb-1" for="categoria">
+                    Categoría *
+                </label>
+                <select name="categoria" id="categoria" required
+                        class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm font-bold text-slate-700 transition-all">
+                    <option value="">Elegir...</option>
+                    <option value="ELECTRONICA">📱 ELECTRONICA</option>
+                    <option value="MONOPATIN">🛴 MONOPATIN</option>
+                    <option value="BICICLETA">🚲 BICICLETA</option>
+                    <option value="VEHICULOGOLF">🏌️ VEHICULO GOLF</option>
+                    <option value="ACCESORIO">🔧 ACCESORIO</option>
+                    <option value="UPS">⚡ UPS</option>
+                    <option value="ESTABILIZADORES">📺 ESTABILIZADORES</option>
+                    <option value="PROTECTORES">🛡️ PROTECTORES</option>
+                    <option value="LUCESEMERGENCIA">🚨 LUCES EMERGENCIA</option>
+                    <option value="LINTERNAS">🔦 LINTERNAS</option>
+                    <option value="MERCHANDISING">🎁 MERCHANDISING</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Precios y Stock -->
+        <div class="grid grid-cols-3 gap-2 bg-blue-50/50 p-3 rounded-2xl border border-blue-100">
+            <div>
+                <label class="block text-[9px] font-black text-blue-400 uppercase mb-1 text-center" for="precioCompra">
+                    💰 P. Compra *
+                </label>
+                <input type="number" step="0.01" name="precioCompra" id="precioCompra" required
+                       min="0.01" placeholder="0.00"
+                       class="w-full border border-blue-200 p-2 rounded-lg text-center font-bold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+            </div>
+            <div>
+                <label class="block text-[9px] font-black text-blue-400 uppercase mb-1 text-center" for="precioVenta">
+                    💵 P. Venta *
+                </label>
+                <input type="number" step="0.01" name="precioVenta" id="precioVenta" required
+                       min="0.01" placeholder="0.00"
+                       class="w-full border border-blue-200 p-2 rounded-lg text-center font-bold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+            </div>
+            <div>
+                <label class="block text-[9px] font-black text-blue-400 uppercase mb-1 text-center" for="stock">
+                    📦 Stock *
+                </label>
+                <input type="number" name="stock" id="stock" required
+                       min="0" placeholder="0"
+                       class="w-full border border-blue-200 p-2 rounded-lg text-center font-bold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+            </div>
+        </div>
+
+        <!-- Advertencia de precios -->
+        <div id="precioWarning" class="hidden p-2 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg text-[10px] font-bold flex items-center gap-2">
+            ⚠️ <span>El precio de venta debería ser mayor al precio de compra</span>
+        </div>
+
+        <!-- Botón de envío -->
+        <button type="submit" id="submitBtn"
+                class="w-full bg-blue-900 text-white py-4 rounded-2xl font-black text-sm shadow-xl active:scale-95 transition-all hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 uppercase tracking-widest">
+            <span class="submit-text">Confirmar Alta en Oracle</span>
+            <span class="loading-text hidden">PROCESANDO...</span>
+        </button>
+
+        <!-- Navegación -->
+        <div class="flex justify-between items-center pt-2">
+            <a href="/app/registrar" class="text-slate-400 text-[10px] font-bold uppercase hover:text-blue-600 transition-colors">
+                ← Registrar Movimiento
+            </a>
+            <span class="text-slate-300 text-[10px]">v2.0</span>
+        </div>
+    </formaction>
+</div>
+
+<!-- Contenedor para notificaciones toast -->
+<div id="toastContainer" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 space-y-2 pointer-events-none"></div>
+
+<!-- SCRIPT SIMPLE DEL ESCÁNER o PRO CON DETECCION DE EXPLORADOR(EL MISMO QUE FUNCIONA EN LA OTRA PÁGINA) -->
+<script>
+    let html5QrCode;
+    let currentCameraTrack;
+
+    window.empezarEscaneo = async function () {
+        const reader = document.getElementById("reader");
+        const input = document.getElementById("codigoBarra");
+
+        if (!reader) return alert("No existe el div #reader");
+        if (!input) return alert("No existe el input #codigoBarra");
+
+        // Si ya está activo, no reiniciar
+        if (html5QrCode) return;
+
+        reader.style.display = "block";
+        reader.classList.remove("hidden");
+
+        try {
+            html5QrCode = new Html5Qrcode("reader");
+
+            // Config TURBO
+            const config = {
+                fps: 30,
+                qrbox: { width: 380, height: 260 }, // grande = engancha rápido
+                aspectRatio: 1.777,
+                rememberLastUsedCamera: true,
+                supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.ITF,
+                    Html5QrcodeSupportedFormats.CODABAR
+                ]
+            };
+
+            // Cámara trasera
+            const cameraConfig = {
+                facingMode: { exact: "environment" }
+            };
+
+            // Estado opcional
+            const status = document.getElementById("scannerStatus");
+            if (status) status.textContent = "Iniciando cámara...";
+
+            await html5QrCode.start(
+                cameraConfig,
+                config,
+                async (text) => {
+                    console.log("✅ Código detectado:", text);
+
+                    input.value = text;
+
+                    // Feedback rápido
+                    input.style.backgroundColor = "#d1fae5";
+                    input.style.borderColor = "#10b981";
+                    input.style.transform = "scale(1.02)";
+
+                    if (window.navigator.vibrate) window.navigator.vibrate([60, 30, 60]);
+
+                    await detenerCamara();
+
+                    setTimeout(() => {
+                        input.style.backgroundColor = "";
+                        input.style.borderColor = "";
+                        input.style.transform = "";
+                    }, 250);
+                },
+                () => {
+                    // Ignoramos errores por frame para no spamear consola
+                }
+            );
+
+            if (status) status.textContent = "Cámara lista";
+
+            // 🔥 INTENTO DE ZOOM AUTOMÁTICO (si el navegador lo permite)
+            try {
+                const videoElem = reader.querySelector("video");
+                if (videoElem && videoElem.srcObject) {
+                    const track = videoElem.srcObject.getVideoTracks()[0];
+                    currentCameraTrack = track;
+
+                    const capabilities = track.getCapabilities?.();
+                    if (capabilities && capabilities.zoom) {
+                        const zoomIdeal = Math.min(2, capabilities.zoom.max); // 2x max
+                        await track.applyConstraints({
+                            advanced: [{ zoom: zoomIdeal }]
+                        });
+                        console.log("🔍 Zoom aplicado:", zoomIdeal);
+                    }
+                }
+            } catch (zoomErr) {
+                console.log("⚠️ Zoom no disponible:", zoomErr);
+            }
+
+        } catch (err) {
+            console.error("❌ Error al iniciar escaneo:", err);
+            alert("Error: asegurate de estar en HTTPS y dar permisos de cámara.");
+            reader.style.display = "none";
+            reader.classList.add("hidden");
+            html5QrCode = null;
+        }
+    };
+
+    window.detenerCamara = async function () {
+        const reader = document.getElementById("reader");
+        const status = document.getElementById("scannerStatus");
+
+        try {
+            if (html5QrCode) {
+                await html5QrCode.stop();
+                await html5QrCode.clear();
+            }
+        } catch (e) {
+            console.log("⚠️ Error al detener cámara:", e);
+        }
+
+        html5QrCode = null;
+        currentCameraTrack = null;
+
+        if (reader) {
+            reader.style.display = "none";
+            reader.classList.add("hidden");
+        }
+
+        if (status) status.textContent = "";
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const reader = document.getElementById("reader");
+        if (reader) {
+            reader.style.display = "none";
+            reader.classList.add("hidden");
+        }
+        console.log("🚀 Escáner TURBO listo");
+    });
+</script>
+
+
+<!-- NOTA: Los scripts están comentados para que no interfieran -->
+<!--
+<script src="/js/config/mensajes.js"></script>
+<script src="/js/utils/notificaciones.js"></script>
+<script src="/js/utils/validadores.js"></script>
+<script src="/js/scanner/camara.js"></script>
+<script src="/js/scanner/scanner.js"></script>
+<script src="/js/scanner/scan-handler.js"></script>
+<script src="/js/forms/alta-producto.js"></script>
+<script src="/js/app.js"></script>
+-->
+
+</body>
+</html>

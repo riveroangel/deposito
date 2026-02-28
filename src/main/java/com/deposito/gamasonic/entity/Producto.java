@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,7 +21,6 @@ import java.util.List;
         @Index(name = "idx_producto_activo", columnList = "activo")
 })
 public class Producto {
-//
 
 
     @Id
@@ -35,9 +36,6 @@ public class Producto {
     @Size(max = 200, message = "El nombre no puede exceder 200 caracteres")
     private String nombre;
 
-    //@Min(value = 0, message = "El stock no puede ser negativo")
-    //private int stock;
-    // 🔥 NUEVOS CAMPOS
 
     @Column(length = 1000)
     private String descripcion;
@@ -50,8 +48,6 @@ public class Producto {
     @Column(nullable = false)
     private CategoriaProducto categoria;
 
-  // @Column(length = 100)
-   // private String categoria;
 
     @Column(precision = 10, scale = 2)
     private BigDecimal precioCompra;
@@ -74,9 +70,13 @@ public class Producto {
     private boolean activo = true;
 
     //@Column(name = "fecha_creacion")
+    @Column(name = "fecha_creacion", updatable = false)
+    @CreationTimestamp
     private LocalDateTime fechaCreacion;
 
     //@Column(name = "fecha_actualizacion")
+    @Column(name = "fecha_actualizacion")
+    @UpdateTimestamp
     private LocalDateTime fechaActualizacion;
 //esto se modifico 17/01/2026 a las 13:45
    // @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -165,13 +165,13 @@ public class Producto {
 
 }
 /*
-* // CORREGIR comparación:
+// CORREGIR comparación:
     if (tipo == TipoMovimiento.ENTRADA) {  // ← ASÍ
         this.stock += cantidad;
     } else if (tipo == TipoMovimiento.SALIDA) {
         this.stock -= cantidad;
     }
 }
-*
-* */
+
+*/
 

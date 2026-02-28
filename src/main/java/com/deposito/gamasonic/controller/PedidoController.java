@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/pedidos")
+@RequestMapping("/api/v1/pedidos")
 //@PreAuthorize("hasRole('ADMIN')")
 public class PedidoController {
 
